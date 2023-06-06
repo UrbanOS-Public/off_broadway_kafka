@@ -5,7 +5,7 @@ defmodule OffBroadwayKafka.MixProject do
 
   def project do
     [
-      app: :off_broadway_kafka,
+      app: :off_broadway_kafka_pipeline,
       version: "2.0.0",
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
