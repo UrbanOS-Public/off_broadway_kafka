@@ -1,6 +1,7 @@
 defmodule OffBroadway.Kafka.AcknowledgerTest do
   use ExUnit.Case
-  use Placebo
+
+  import Mock
 
   alias OffBroadway.Kafka.Acknowledger
 
@@ -9,9 +10,9 @@ defmodule OffBroadway.Kafka.AcknowledgerTest do
   @partition 0
   @generation_id 7
 
-  setup do
-    allow Elsa.Group.Acknowledger.ack(any(), any(), any(), any(), any()), return: :ok
-
+  setup_with_mocks([
+    {Elsa.Group.Acknowledger, [], [ack: fn(_, _, _, _, _) -> :ok end]}
+  ]) do
     {:ok, pid} =
       Acknowledger.start_link(
         connection: @connection,
@@ -25,7 +26,6 @@ defmodule OffBroadway.Kafka.AcknowledgerTest do
       ack_ref: %{pid: pid, topic: @topic, partition: @partition, generation_id: @generation_id}
     ]
   end
-
   test "should ack offsets as acknowledged", %{pid: pid, ack_ref: ack_ref} do
     Acknowledger.add_offsets(pid, 1..100)
 
@@ -33,7 +33,7 @@ defmodule OffBroadway.Kafka.AcknowledgerTest do
 
     Patiently.wait_for!(
       fn ->
-        called?(Elsa.Group.Acknowledger.ack(@connection, @topic, @partition, @generation_id, 1))
+        is_nil(assert_called(Elsa.Group.Acknowledger.ack(@connection, @topic, @partition, @generation_id, 1)))
       end,
       dwell: 200,
       max_tries: 10
@@ -46,7 +46,7 @@ defmodule OffBroadway.Kafka.AcknowledgerTest do
     Acknowledger.ack(ack_ref, [broadway_message(3)], [])
 
     Process.sleep(1_000)
-    refute_called Elsa.Group.Acknowledger.ack(@connection, @topic, @partition, @generation_id, any())
+    assert_not_called Elsa.Group.Acknowledger.ack(@connection, @topic, @partition, @generation_id, :_)
   end
 
   test "should ack all messages up to the latest that have been processed", %{pid: pid, ack_ref: ack_ref} do
@@ -56,8 +56,8 @@ defmodule OffBroadway.Kafka.AcknowledgerTest do
 
     Patiently.wait_for!(
       fn ->
-        called?(Elsa.Group.Acknowledger.ack(@connection, @topic, @partition, @generation_id, any()), once())
-        called?(Elsa.Group.Acknowledger.ack(@connection, @topic, @partition, @generation_id, 3))
+        assert_called_exactly Elsa.Group.Acknowledger.ack(@connection, @topic, @partition, @generation_id, :_), 1
+        is_nil(assert_called(Elsa.Group.Acknowledger.ack(@connection, @topic, @partition, @generation_id, 3)))
       end,
       dwell: 200,
       max_tries: 10
@@ -71,8 +71,8 @@ defmodule OffBroadway.Kafka.AcknowledgerTest do
 
     Patiently.wait_for!(
       fn ->
-        called?(Elsa.Group.Acknowledger.ack(@connection, @topic, @partition, @generation_id, any()), once())
-        called?(Elsa.Group.Acknowledger.ack(@connection, @topic, @partition, @generation_id, 41))
+        assert_called_exactly Elsa.Group.Acknowledger.ack(@connection, @topic, @partition, @generation_id, :_), 1
+        is_nil(assert_called(Elsa.Group.Acknowledger.ack(@connection, @topic, @partition, @generation_id, 41)))
       end,
       dwell: 200,
       max_tries: 10

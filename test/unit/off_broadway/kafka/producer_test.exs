@@ -1,6 +1,7 @@
 defmodule OffBroadway.Kafka.ProducerTest do
   use ExUnit.Case
-  use Placebo
+
+  import Mock
 
   describe "handle_info/2" do
     test "it adds incoming messages to its state" do
@@ -25,14 +26,15 @@ defmodule OffBroadway.Kafka.ProducerTest do
     end
 
     test "sends incoming messages to the acknowledger" do
-      allow OffBroadway.Kafka.Acknowledger.add_offsets(any(), any()), return: :ok, meck_options: [:passthrough]
+      with_mock(OffBroadway.Kafka.Acknowledger, [:passthrough], [add_offsets: fn(_, _) -> :ok end]) do
 
-      events = create_messages(1..10)
-      state = state(10, events)
+        events = create_messages(1..10)
+        state = state(10, events)
 
-      {:noreply, _sent_events, _new_state} = OffBroadway.Kafka.Producer.handle_info({:process_messages, events}, state)
+        {:noreply, _sent_events, _new_state} = OffBroadway.Kafka.Producer.handle_info({:process_messages, events}, state)
 
-      assert_called OffBroadway.Kafka.Acknowledger.add_offsets(:acknowledger_pid, 1..10)
+        assert_called OffBroadway.Kafka.Acknowledger.add_offsets(:acknowledger_pid, 1..10)
+      end
     end
   end
 

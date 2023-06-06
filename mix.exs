@@ -1,13 +1,13 @@
 defmodule OffBroadwayKafka.MixProject do
   use Mix.Project
 
-  @github "https://github.com/bbalser/off_broadway_kafka"
+  @github "https://github.com/UrbanOS-Public/off_broadway_kafka"
 
   def project do
     [
       app: :off_broadway_kafka,
-      version: "1.0.1",
-      elixir: "~> 1.8",
+      version: "2.0.0",
+      elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: description(),
@@ -29,23 +29,23 @@ defmodule OffBroadwayKafka.MixProject do
 
   defp deps do
     [
-      {:elsa, "~> 0.12"},
-      {:broadway, "~> 0.6"},
-      {:retry, "~> 0.13"},
-      {:placebo, "~> 1.2", only: [:dev, :test, :integration]},
-      {:checkov, "~> 0.5", only: [:dev, :test, :integration]},
-      {:divo, "~> 1.1", only: [:dev, :integration]},
-      {:divo_kafka, "~> 0.1.6", only: [:dev, :integration]},
+      {:elsa_kafka, "~> 2.0"},
+      {:broadway, "~> 1.0"},
+      {:retry, "~> 0.15"},
+      {:mock, "~> 0.3", only: [:dev, :test, :integration]},
+      {:checkov, "~> 1.0", only: [:dev, :test, :integration]},
+      {:divo, "~> 2.0", only: [:dev, :integration]},
+      {:divo_kafka, "~> 1.0", only: [:dev, :integration]},
       {:patiently, "~> 0.2", only: [:test, :integration], override: true},
       {:ex_doc, "~> 0.21", only: [:dev], runtime: false},
       {:benchee, "~> 1.0", only: [:integration]},
-      {:dialyxir, "~> 1.0.0-rc.7", only: [:dev], runtime: false}
+      {:dialyxir, "~> 1.3", only: [:dev], runtime: false}
     ]
   end
 
   defp package do
     [
-      maintainers: ["Brian Balser", "Jeff Grunewald"],
+      maintainers: ["Smartcitiesdata"],
       licenses: ["Apache 2.0"],
       links: %{"GitHub" => @github}
     ]
